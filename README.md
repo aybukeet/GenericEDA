@@ -1,114 +1,188 @@
-# GenericEDA
+# ECU Control Panel
 
-GenericEDA is a Python-based project developed to perform Exploratory Data Analysis (EDA), data quality checks, and data cleaning on datasets in different formats.
+## 📌 Project Overview
 
-## 🚀 Project Features
+ECU Control Panel is a Qt/C++ based application for monitoring and processing ECU data.
 
-- Reading CSV, Excel, and TXT files
-- Displaying dataset row and column information
-- Data type analysis
-- Generating statistical summaries
-- Missing value analysis
-- Detecting and removing duplicate records
-- Detecting infinite values
-- Detecting constant and completely empty columns
-- Outlier analysis using the IQR method
-- Outlier analysis using the Z-Score method
-- User-defined IQR multiplier
-- Displaying outlier percentages
-- Outlier cleaning: Remove Outliers, Mean, Median, Winsorize
-- Data visualization
-- Exporting the cleaned dataset
+The system receives raw ECU data, parses it according to parameter definitions, processes the resulting parameter values, and presents the data through a Qt/QML interface.
 
-## 📊 EDA Workflow
+The project also includes a data cleaning layer to improve the reliability and quality of parsed ECU data before it is displayed.
 
-Dataset → Loading → Summary → Quality Analysis → Missing Values → Outlier Analysis → Data Cleaning → Visualization → Export
-
-## 📂 Supported File Formats
-
-- `.csv`
-- `.xlsx`
-- `.xls`
-- `.txt`
-
-## 🛠️ Technologies Used
-
-- Python
-- Pandas
-- NumPy
-- SciPy
-- Matplotlib
-- Seaborn
-- Jupyter Notebook
-
-## 📁 Project Structure
+## 🏗️ System Architecture
 
 ```text
-GenericEDA/
-├── GenericEDA_updated.ipynb
-├── README.md
-├── utils/
-│   ├── loader.py
-│   ├── summary.py
-│   ├── quality.py
-│   ├── missing.py
-│   ├── outlier.py
-│   ├── cleaning.py
-│   ├── visualization.py
-│   └── export.py
-├── data/
-└── figures/
+                         ECU Data
+                            │
+                            ▼
+                     RawDataReader
+                            │
+                            ▼
+                     RawDataParser
+                            ▲
+                            │
+                    Parameter Definitions
+                            │
+                     ┌──────┴──────┐
+                     │ ExcelParser  │
+                     └──────┬──────┘
+                            │
+                      ECU_Data.xlsx
+
+                     Parsed Parameter Data
+                            │
+                            ▼
+                       DataCleaner
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+       Missing          Duplicate          Infinite
+          │                                   │
+          └─────────────────┬─────────────────┘
+                            │
+                         Outlier
+                            │
+                            ▼
+                       Cleaned Data
+                            │
+                            ▼
+                        Qt / QML
+                            │
+                            ▼
+                      Charts / UI
 ```
 
-## 📈 Outlier Analysis
+## 🔄 Data Processing Flow
 
-### IQR
+1. `RawDataReader` receives or reads raw ECU data.
+2. `ExcelParser` reads parameter definitions from the ECU configuration Excel file.
+3. `RawDataParser` uses these definitions to convert raw ECU data into meaningful parameter values.
+4. Parsed parameter values are passed to `DataCleaner`.
+5. `DataCleaner` checks and processes data quality issues.
+6. Cleaned values are passed to the Qt/QML interface.
+7. Processed data can be displayed using parameter cards, tables, and charts.
 
-The system first performs a preliminary analysis using the standard `1.5` IQR multiplier and displays the number and percentage of outliers for each column.
+## 📊 Data Cleaning
 
-The user can review these results and determine an appropriate multiplier value.
-
-- `1.5` → Standard / Balanced
-- `2.0` → More Tolerant
-- `2.5` → More Tolerant
-- `3.0` → Very Tolerant
-
-The final outlier report is generated using the selected multiplier.
-
-### Z-Score
-
-For the Z-Score method, the user can specify the threshold value.
-The standard recommended threshold is `3`.
-
-## 🧹 Data Cleaning
-
-The goal is to improve data quality while minimizing data loss as much as possible.
+The cleaning layer is based on the data quality and outlier analysis work developed in the GenericEDA project.
 
 ### Missing Values
 
-- Completely empty columns are removed.
-- Rows containing a very high proportion of missing data are removed.
-- Missing numeric values can be filled using the median.
-- Missing categorical values can be filled using the mode.
-- Mean, Median, and Mode methods are supported.
+- Detect missing values.
+- Reduce unnecessary row deletion.
+- Remove completely empty columns.
+- Fill numeric missing values using statistical methods.
+- Fill categorical missing values using mode.
 
 ### Duplicate Records
 
-Duplicate records are detected and can be removed during the cleaning process.
+Duplicate records can be detected and removed to prevent repeated measurements from affecting analysis.
 
-### Outliers
+### Infinite Values
 
-The following operations can be applied to outliers:
+Infinite and other non-finite numeric values are detected and handled before further analysis.
+
+### Outlier Detection
+
+Two methods are supported:
+
+- **IQR**
+- **Z-Score**
+
+For IQR analysis, the standard multiplier is initially `1.5`.
+
+The system can first show the detected outlier count and percentage, allowing the user to choose an appropriate IQR multiplier before the final analysis.
+
+### Outlier Handling
+
+Detected outliers can be handled using:
 
 - Remove Outliers
 - Replace with Mean
 - Replace with Median
-- Winsorize
+- Winsorization
 
-## 📊 Visualization
+## 📈 Visualization
 
-Various plots are generated to help analyze and examine the dataset.
-The generated plots are stored in the `figures/` directory.
+Processed ECU parameters can be visualized through the Qt/QML interface.
+
+Possible visualizations include:
+
+- Live parameter values
+- Parameter history
+- Line charts
+- Selected signal trends
+- Data quality information
+- Outlier/anomaly indicators
+
+## 🧩 Main Components
+
+### ExcelParser
+
+Reads parameter definitions from the ECU Excel configuration.
+
+These definitions can include:
+
+- Parameter name
+- RAM/address information
+- Data type
+- Data width
+- Conversion information
+
+### RawDataReader
+
+Responsible for receiving or reading raw ECU data.
+
+### RawDataParser
+
+Converts raw ECU data into meaningful parameter values using the definitions provided by `ExcelParser`.
+
+### DataCleaner
+
+Processes parsed parameter data and handles data quality problems such as:
+
+- Missing values
+- Duplicate records
+- Infinite values
+- Outliers
+
+### Qt/QML Interface
+
+Displays processed ECU data and provides the visualization layer.
+
+## 🛠️ Technologies
+
+- C++
+- Qt 6
+- Qt Quick / QML
+- Qt Widgets
+- Excel-based parameter definitions
+- Data processing and statistical analysis
+
+## 📁 Project Structure
+
+```text
+ECUControlPanel/
+│
+├── backend/
+│   ├── parser/
+│   │   ├── ExcelParser.h
+│   │   ├── ExcelParser.cpp
+│   │   ├── RawDataParser.h
+│   │   └── RawDataParser.cpp
+│   │
+│   ├── cleaner/
+│   │   ├── DataCleaner.h
+│   │   └── DataCleaner.cpp
+│   │
+│   ├── collector/
+│   ├── dispatcher/
+│   ├── manager/
+│   └── simulator/
+│
+├── qml/
+├── data/
+└── README.md
+```
 
 ## ▶️ Running the Project
 
@@ -126,15 +200,30 @@ jupyter lab
 
 Then open and run the `GenericEDA_updated.ipynb` file.
 
-## 💾 Output
+## 🎯 Current Development Goal
 
-As a result of the analysis and cleaning processes, the following outputs can be generated:
+The current development focus is integrating data cleaning functionality into the existing ECU data processing pipeline.
 
-- Dataset summary
-- Data quality report
-- Missing value report
-- Outlier report
-- Visualizations
-- Cleaned dataset
+The target flow is:
 
-Visualizations are stored in the `figures/` directory, while cleaned datasets can be saved through the export process.
+```text
+Raw ECU Data
+     ↓
+RawDataReader
+     ↓
+RawDataParser
+     ↓
+Parsed Parameter Data
+     ↓
+DataCleaner
+     ↓
+Cleaned Data
+     ↓
+Qt/QML
+```
+
+This integration aims to make the ECU Control Panel more robust by ensuring that parsed data is checked and cleaned before being presented to the user.
+
+## 👥 Developers
+
+Aybüke & Esra
